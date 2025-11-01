@@ -3,8 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCurrentUser, getSheet, updateSheetTitle } from '@/lib/supabase/client';
+import { updatePresence } from '@/lib/supabase/collaboration';
 import Spreadsheet from '@/components/spreadsheet/Spreadsheet';
-import { FileSpreadsheet, ArrowLeft } from 'lucide-react';
+import ShareModal from '@/components/collaboration/ShareModal';
+import ChatPanel from '@/components/collaboration/ChatPanel';
+import OnlineUsers from '@/components/collaboration/OnlineUsers';
+import { FileSpreadsheet, ArrowLeft, Share2, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function SheetPage({ params }) {
@@ -14,10 +18,35 @@ export default function SheetPage({ params }) {
   const [loading, setLoading] = useState(true);
   const [editingTitle, setEditingTitle] = useState(false);
   const [title, setTitle] = useState('');
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
 
   useEffect(() => {
     checkUserAndLoadSheet();
   }, []);
+
+  useEffect(() => {
+    // Mark user as online when component mounts
+    if (params.sheetId && user) {
+      updatePresence(params.sheetId, true);
+
+      // Mark offline on unmount
+      return () => {
+        updatePresence(params.sheetId, false);
+      };
+    }
+  }, [params.sheetId, user]);
+
+  // Update presence periodically
+  useEffect(() => {
+    if (params.sheetId && user) {
+      const interval = setInterval(() => {
+        updatePresence(params.sheetId, true);
+      }, 30000); // Every 30 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [params.sheetId, user]);
 
   const checkUserAndLoadSheet = async () => {
     const currentUser = await getCurrentUser();
@@ -114,6 +143,25 @@ export default function SheetPage({ params }) {
           </div>
           
           <div className="flex items-center gap-4">
+            <OnlineUsers sheetId={params.sheetId} />
+            
+            <button
+              onClick={() => setChatOpen(!chatOpen)}
+              className="flex items-center gap-2 px-3 py-1.5 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Toggle Chat"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span className="text-sm font-medium">Chat</span>
+            </button>
+            
+            <button
+              onClick={() => setShareModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            >
+              <Share2 className="w-4 h-4" />
+              Share
+            </button>
+            
             <span className="text-sm text-gray-600">{user?.email}</span>
           </div>
         </div>
@@ -123,6 +171,20 @@ export default function SheetPage({ params }) {
       <div className="flex-1 overflow-hidden">
         <Spreadsheet sheetId={params.sheetId} />
       </div>
+
+      {/* Collaboration Features */}
+      <ShareModal
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        sheetId={params.sheetId}
+        sheetTitle={sheet?.title || 'Untitled Sheet'}
+      />
+      
+      <ChatPanel
+        sheetId={params.sheetId}
+        isOpen={chatOpen}
+        onToggle={() => setChatOpen(!chatOpen)}
+      />
     </div>
   );
 }
