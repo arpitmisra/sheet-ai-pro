@@ -36,15 +36,30 @@ export default function RegisterPage() {
     const { data, error } = await signUp(email, password, fullName);
 
     if (error) {
-      setError(error.message);
+      setError(error.message || 'Failed to create account. Please try again.');
       setLoading(false);
       return;
     }
 
-    setSuccess(true);
-    setTimeout(() => {
-      router.push('/login');
-    }, 2000);
+    // Check if email confirmation is required
+    if (data?.user && !data?.session) {
+      // Email confirmation required
+      setSuccess(true);
+      setError('');
+    } else if (data?.session) {
+      // No confirmation required, user is logged in
+      setSuccess(true);
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 1500);
+    } else {
+      setSuccess(true);
+      setTimeout(() => {
+        router.push('/login');
+      }, 2000);
+    }
+    
+    setLoading(false);
   };
 
   const handleGoogleSignIn = async () => {
@@ -76,7 +91,15 @@ export default function RegisterPage() {
                 </svg>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Account Created!</h3>
-              <p className="text-gray-600">Redirecting to login...</p>
+              <p className="text-gray-600 mb-4">
+                Check your email to confirm your account, or you can sign in directly if email confirmation is disabled.
+              </p>
+              <Link
+                href="/login"
+                className="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+              >
+                Go to Login
+              </Link>
             </div>
           ) : (
             <>
