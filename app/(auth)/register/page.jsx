@@ -33,33 +33,37 @@ export default function RegisterPage() {
       return;
     }
 
-    const { data, error } = await signUp(email, password, fullName);
+    try {
+      const { data, error, needsConfirmation } = await signUp(email, password, fullName);
 
-    if (error) {
-      setError(error.message || 'Failed to create account. Please try again.');
+      if (error) {
+        console.error('Signup error:', error);
+        setError(error.message || 'Failed to create account. Please try again.');
+        setLoading(false);
+        return;
+      }
+
+      // Check if email confirmation is required
+      if (needsConfirmation || (data?.user && !data?.session)) {
+        // Email confirmation required
+        setSuccess(true);
+        setError('');
+        setLoading(false);
+      } else if (data?.session) {
+        // No confirmation required, user is logged in
+        setSuccess(true);
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 1500);
+      } else {
+        setSuccess(true);
+        setLoading(false);
+      }
+    } catch (err) {
+      console.error('Signup exception:', err);
+      setError('An unexpected error occurred. Please try again.');
       setLoading(false);
-      return;
     }
-
-    // Check if email confirmation is required
-    if (data?.user && !data?.session) {
-      // Email confirmation required
-      setSuccess(true);
-      setError('');
-    } else if (data?.session) {
-      // No confirmation required, user is logged in
-      setSuccess(true);
-      setTimeout(() => {
-        router.push('/dashboard');
-      }, 1500);
-    } else {
-      setSuccess(true);
-      setTimeout(() => {
-        router.push('/login');
-      }, 2000);
-    }
-    
-    setLoading(false);
   };
 
   const handleGoogleSignIn = async () => {

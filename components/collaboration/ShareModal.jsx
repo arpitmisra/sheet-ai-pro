@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { X, Users, Mail, Crown, Edit, Eye } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, Users, Mail, Crown, Edit, Eye, AlertCircle } from 'lucide-react';
 import { addCollaborator, getSheetCollaborators, updateCollaboratorRole, removeCollaborator } from '@/lib/supabase/collaboration';
 
 export default function ShareModal({ isOpen, onClose, sheetId, sheetTitle }) {
@@ -10,6 +10,12 @@ export default function ShareModal({ isOpen, onClose, sheetId, sheetTitle }) {
   const [collaborators, setCollaborators] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      loadCollaborators();
+    }
+  }, [isOpen, sheetId]);
 
   const loadCollaborators = async () => {
     const { data, error } = await getSheetCollaborators(sheetId);
@@ -68,10 +74,22 @@ export default function ShareModal({ isOpen, onClose, sheetId, sheetTitle }) {
 
         {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
-          {/* Add Collaborator Form */}
-          <form onSubmit={handleAddCollaborator} className="mb-6">
+          {/* Info Banner */}
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-yellow-800">
+              <p className="font-medium">Collaboration feature coming soon!</p>
+              <p className="mt-1">
+                Adding collaborators by email requires additional setup. 
+                For now, you can see who has access to this sheet.
+              </p>
+            </div>
+          </div>
+
+          {/* Add Collaborator Form - Disabled for now */}
+          <form onSubmit={handleAddCollaborator} className="mb-6 opacity-50 pointer-events-none">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Add people
+              Add people (Coming soon)
             </label>
             <div className="flex gap-2">
               <div className="flex-1 relative">
