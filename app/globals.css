@@ -64,7 +64,11 @@
 }
 
 .spreadsheet-cell {
-  @apply border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+  @apply border border-gray-300 bg-white transition-colors;
+  cursor: cell;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .spreadsheet-cell:hover {
@@ -72,13 +76,34 @@
 }
 
 .spreadsheet-cell.selected {
-  @apply ring-2 ring-blue-500 border-blue-500 bg-blue-50;
+  @apply ring-2 ring-blue-500 border-blue-500 bg-white;
+  z-index: 1;
+}
+
+.spreadsheet-cell.editing {
+  @apply ring-2 ring-blue-600 border-blue-600 bg-white;
+  z-index: 2;
 }
 
 .spreadsheet-header {
-  @apply bg-gray-100 font-medium text-gray-700 border border-gray-300 px-2 py-1 text-sm text-center;
+  @apply bg-gray-100 font-medium text-gray-700 border border-gray-300 px-2 py-1 text-sm text-center sticky;
+  user-select: none;
+  flex-shrink: 0;
+  overflow: hidden;
 }
 
 .formula-bar {
-  @apply border-b border-gray-300 bg-white px-4 py-2 flex items-center gap-2;
+  @apply border-b border-gray-300 bg-white px-4 py-2 flex items-center gap-2 flex-shrink-0;
+}
+
+/* Resize cursor */
+.cursor-col-resize {
+  cursor: col-resize !important;
+}
+
+/* Text truncation with ellipsis */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
